@@ -3,148 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Extractor V2.0</title>
+    <title>Advanced Extractor V4.0 - Pro UI</title>
     <style>
-        :root { --bg: #0b0f19; --panel: #111827; --text: #00ffcc; --accent: #00ffcc; --danger: #ff3366; }
-        body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg); color: #fff; padding: 20px; margin: 0; }
-        .container { max-width: 1000px; margin: auto; }
-        .input-group { background: var(--panel); padding: 15px; border-left: 4px solid var(--accent); margin-bottom: 15px; }
-        label { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; }
-        input[type="url"], input[type="text"], textarea { width: 100%; background: #000; color: #fff; border: 1px solid #333; padding: 12px; box-sizing: border-box; font-family: monospace; }
-        textarea { height: 120px; resize: vertical; }
-        .divider { text-align: center; margin: 10px 0; color: #555; font-weight: bold; }
-        .controls { display: flex; gap: 10px; margin-top: 15px; }
-        button { display: flex; align-items: center; gap: 8px; background: var(--accent); color: #000; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; text-transform: uppercase; border-radius: 2px; }
-        button:hover { opacity: 0.8; }
+        :root { --bg: #0b0f19; --panel: #111827; --text: #00ffcc; --accent: #00ffcc; --danger: #ff3366; --border: #1f2937; --hover-bg: #1a2235; }
+        body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg); color: #fff; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Navbar & Sidebar */
+        .navbar { background: #000; padding: 15px 20px; display: flex; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; justify-content: space-between;}
+        .nav-left { display: flex; align-items: center; }
+        .menu-btn { background: transparent; border: none; color: var(--accent); cursor: pointer; padding: 5px; margin-right: 15px; display: flex; }
+        .menu-btn:hover { background: var(--hover-bg); border-radius: 4px; }
+        .nav-title { font-weight: bold; font-size: 1.2rem; margin: 0; letter-spacing: 2px; }
+        
+        .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100%; background: #000; border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 60px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+        .sidebar.active { left: 0; }
+        .sidebar-item { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; cursor: pointer; color: #a1a1aa; font-weight: bold; }
+        .sidebar-item:hover { background: var(--hover-bg); color: var(--accent); }
+        .close-menu { position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #fff; cursor: pointer; }
+
+        /* Main Container */
+        .container { flex: 1; width: 100%; max-width: 1200px; margin: auto; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        
+        /* Inputs & Controls */
+        .input-wrapper { display: flex; flex-direction: column; gap: 15px; width: 100%; transition: all 0.3s ease; }
+        .input-group { background: var(--panel); padding: 15px; border-left: 4px solid var(--accent); }
+        label { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; }
+        input[type="url"], input[type="text"], textarea { width: 100%; background: #000; color: #fff; border: 1px solid #333; padding: 12px; box-sizing: border-box; font-family: monospace; outline: none; }
+        input:focus, textarea:focus { border-color: var(--accent); }
+        textarea { height: 100px; resize: vertical; }
+        
+        .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        button.action-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #000; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; text-transform: uppercase; border-radius: 2px; flex: 1; min-width: 150px; transition: 0.2s;}
+        button.action-btn:hover { opacity: 0.8; }
         #saveBtn { background: var(--danger); color: #fff; display: none; }
-        .output-panel { margin-top: 20px; background: var(--panel); padding: 20px; display: none; border-top: 1px solid #333; }
-        .category { color: var(--accent); margin-top: 20px; border-bottom: 1px dashed #333; padding-bottom: 5px; }
-        .link-list { list-style: none; padding: 0; margin: 10px 0; word-break: break-all; font-size: 13px; color: #a1a1aa; }
-        .link-list li { padding: 4px 0; border-bottom: 1px solid #1f2937; }
-        .icon { width: 16px; height: 16px; fill: currentColor; }
+
+        /* Output & Tabs */
+        .output-panel { margin-top: 30px; background: var(--panel); border: 1px solid var(--border); display: none; flex-direction: column; flex: 1; position: relative; }
+        
+        /* Tool Bar (Search & Copy All) */
+        .tools-bar { display: none; justify-content: space-between; align-items: center; padding: 10px 20px; background: #070a13; border-bottom: 1px solid var(--border); gap: 15px; }
+        .search-box { flex: 1; position: relative; }
+        .search-box input { width: 100%; padding: 8px 10px 8px 35px; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; }
+        .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: #666; }
+        .copy-all-btn { background: #1f2937; color: #fff; border: 1px solid #333; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; display: flex; align-items: center; gap: 8px; transition: 0.2s;}
+        .copy-all-btn:hover { background: var(--accent); color: #000; }
+
+        .tabs-header { display: flex; overflow-x: auto; background: #000; border-bottom: 1px solid var(--border); margin: 0; }
+        .tabs-header::-webkit-scrollbar { height: 4px; }
+        .tabs-header::-webkit-scrollbar-thumb { background: var(--accent); }
+        .tab-btn { background: transparent; color: #a1a1aa; border: none; border-bottom: 3px solid transparent; padding: 15px 20px; cursor: pointer; font-weight: bold; text-transform: uppercase; white-space: nowrap; transition: 0.2s; border-radius: 0; min-width: auto; flex: none; }
+        .tab-btn.active { color: var(--accent); border-bottom: 3px solid var(--accent); background: var(--hover-bg); }
+        .tab-btn:hover:not(.active) { color: #fff; background: #111; }
+        
+        .tab-content { padding: 20px; display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+        
+        /* Links List & Single Copy */
+        .link-list { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #a1a1aa; max-height: 50vh; overflow-y: auto; }
+        .link-list::-webkit-scrollbar { width: 6px; }
+        .link-list::-webkit-scrollbar-thumb { background: #333; }
+        .link-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border); background: #0b0f19; margin-bottom: 5px; border-left: 2px solid transparent; transition: 0.1s; word-break: break-all;}
+        .link-list li:hover { border-left: 2px solid var(--accent); color: #fff; background: #0f1422; }
+        
+        .link-text { flex: 1; padding-right: 15px; }
+        .copy-single { background: transparent; color: var(--accent); border: none; cursor: pointer; padding: 5px; border-radius: 4px; display: flex; opacity: 0.4; transition: 0.2s; }
+        .copy-single:hover { background: var(--accent); color: #000; opacity: 1; }
+        .link-list li:hover .copy-single { opacity: 1; }
+        
+        /* Floating Image Preview */
+        #imgPreview { position: fixed; display: none; border: 2px solid var(--accent); background: #000; padding: 4px; max-width: 300px; max-height: 300px; z-index: 9999; border-radius: 4px; pointer-events: none; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+        #imgPreview img { max-width: 100%; max-height: 280px; display: block; }
+        
+        .icon { width: 18px; height: 18px; fill: currentColor; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; }
+            .tools-bar { flex-direction: column; align-items: stretch; }
+        }
     </style>
 </head>
 <body>
 
+<div id="imgPreview"></div>
+
+<div class="navbar">
+    <div class="nav-left">
+        <button class="menu-btn" onclick="toggleSidebar()">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <h1 class="nav-title">[0xDATA_V4]</h1>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <button class="close-menu" onclick="toggleSidebar()">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+    </button>
+    <div class="sidebar-item" onclick="toggleTargetUrl()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        Toggle Input Box
+    </div>
+    <div class="sidebar-item" onclick="clearAllData()">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        Clear Workspace
+    </div>
+</div>
+
 <div class="container">
-    <h2>[0xDATA_EXTRACTOR_V2]</h2>
-    
-    <div class="input-group">
-        <label>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Target URL (Auto-Fetch)
-        </label>
-        <input type="url" id="urlInput" placeholder="https://example.com">
-    </div>
-
-    <div class="divider">--- OR ---</div>
-
-    <div class="input-group">
-        <label>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Raw HTML Paste
-        </label>
-        <textarea id="htmlInput" placeholder="Paste full HTML source code here..."></textarea>
-    </div>
-
-    <div class="input-group">
-        <label>
-            <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            Custom Regex (Optional)
-        </label>
-        <input type="text" id="customRegex" placeholder="e.g., api/v1/.*?\.json">
+    <div class="input-wrapper" id="urlBoxContainer">
+        <div class="input-group">
+            <label><svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" fill="none"/></svg> Target URL</label>
+            <input type="url" id="urlInput" placeholder="https://example.com">
+        </div>
+        <div class="input-group">
+            <label><svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" fill="none"/></svg> Raw HTML Paste</label>
+            <textarea id="htmlInput" placeholder="Paste full HTML source code here..."></textarea>
+        </div>
+        <div class="input-group">
+            <label><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" fill="none"/></svg> Custom Regex</label>
+            <input type="text" id="customRegex" placeholder="e.g., api/v1/.*?\.json">
+        </div>
     </div>
     
     <div class="controls">
-        <button onclick="extractData()">
-            <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Execute Parse
+        <button class="action-btn" onclick="extractData()">
+            <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" fill="none"/></svg> Execute Parse
         </button>
-        <button id="saveBtn" onclick="saveToTxt()">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Dump to TXT
+        <button class="action-btn" id="saveBtn" onclick="saveToTxt()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8" stroke="currentColor" stroke-width="2" fill="none"/></svg> Dump to TXT
         </button>
     </div>
 
-    <div id="output" class="output-panel"></div>
+    <div id="outputContainer" class="output-panel">
+        <div class="tools-bar" id="toolsBar">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                <input type="text" id="searchBar" oninput="filterActiveTab()" placeholder="Filter current tab links...">
+            </div>
+            <button class="copy-all-btn" onclick="copyActiveTabLinks()">
+                <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                Copy Tab Links
+            </button>
+        </div>
+
+        <div class="tabs-header" id="tabsHeader"></div>
+        <div id="tabsContentArea"></div>
+    </div>
 </div>
 
 <script>
     let rawOutputData = "";
+    let extractedDataset = {}; // Store data for copying
+    let activeCategoryId = "";
+
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+    function toggleTargetUrl() { 
+        const b = document.getElementById('urlBoxContainer'); 
+        b.style.display = b.style.display === 'none' ? 'flex' : 'none'; 
+        toggleSidebar(); 
+    }
+    function clearAllData() {
+        document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        document.getElementById('outputContainer').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('toolsBar').style.display = 'none';
+        toggleSidebar();
+    }
 
     async function extractData() {
-        const urlCode = document.getElementById('urlInput').value;
-        const htmlCode = document.getElementById('htmlInput').value;
-        const customRegex = document.getElementById('customRegex').value;
-        
-        const outputDiv = document.getElementById('output');
-        outputDiv.innerHTML = '<span style="color:var(--accent)">Running extraction protocol...</span>';
-        outputDiv.style.display = 'block';
-
         const formData = new FormData();
-        formData.append('url', urlCode);
-        formData.append('html_code', htmlCode);
-        formData.append('custom_regex', customRegex);
+        formData.append('url', document.getElementById('urlInput').value);
+        formData.append('html_code', document.getElementById('htmlInput').value);
+        formData.append('custom_regex', document.getElementById('customRegex').value);
+        
+        const outputContainer = document.getElementById('outputContainer');
+        const toolsBar = document.getElementById('toolsBar');
+        document.getElementById('tabsHeader').innerHTML = '';
+        document.getElementById('tabsContentArea').innerHTML = '<div style="padding:20px; color:var(--accent)">Executing Parse Protocol...</div>';
+        outputContainer.style.display = 'flex';
+        toolsBar.style.display = 'none';
 
         try {
             const response = await fetch('/extract', { method: 'POST', body: formData });
             const data = await response.json();
-            displayData(data);
+            extractedDataset = data; 
+            buildTabsUI(data);
         } catch (error) {
-            outputDiv.innerHTML = `<span style="color:var(--danger)">System Error: ${error.message}</span>`;
+            document.getElementById('tabsContentArea').innerHTML = `<div style="padding:20px; color:var(--danger)">System Error: ${error.message}</div>`;
         }
     }
 
-    function displayData(data) {
-        const outputDiv = document.getElementById('output');
-        outputDiv.innerHTML = '';
+    function buildTabsUI(data) {
+        const tabsHeader = document.getElementById('tabsHeader');
+        const tabsContentArea = document.getElementById('tabsContentArea');
+        const toolsBar = document.getElementById('toolsBar');
+        tabsHeader.innerHTML = ''; tabsContentArea.innerHTML = '';
         rawOutputData = "=== 0xDATA ASSET DUMP ===\n\n";
 
-        if (data.Error_Logs) {
-            outputDiv.innerHTML = `<span style="color:var(--danger)">[!] ${data.Error_Logs[0]}</span>`;
+        if (data.Error_Logs || Object.keys(data).length === 0) {
+            tabsContentArea.innerHTML = `<div style="padding:20px; color:var(--danger)">[!] ${data.Error_Logs ? data.Error_Logs[0] : 'Zero target assets found.'}</div>`;
             document.getElementById('saveBtn').style.display = 'none';
             return;
         }
 
-        if (Object.keys(data).length === 0) {
-            outputDiv.innerHTML = '<span>[!] Zero target assets found.</span>';
-            document.getElementById('saveBtn').style.display = 'none';
-            return;
-        }
+        let isFirstTab = true;
+        const imgExtensions = /\.(jpeg|jpg|gif|png|webp|svg)$/i;
 
         for (const [category, links] of Object.entries(data)) {
-            const catHeader = document.createElement('h3');
-            catHeader.className = 'category';
-            catHeader.textContent = `[+] ${category} (${links.length})`;
-            outputDiv.appendChild(catHeader);
+            const safeId = category.replace(/[^a-zA-Z0-9]/g, '_');
+            if(isFirstTab) activeCategoryId = safeId;
+            
+            // Tab Button
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${isFirstTab ? 'active' : ''}`;
+            btn.innerHTML = `${category} (${links.length})`;
+            btn.onclick = () => switchTab(safeId);
+            btn.id = `btn-${safeId}`;
+            tabsHeader.appendChild(btn);
 
-            const list = document.createElement('ul');
-            list.className = 'link-list';
+            // Tab Content
+            const contentDiv = document.createElement('div');
+            contentDiv.className = `tab-content ${isFirstTab ? 'active' : ''}`;
+            contentDiv.id = `content-${safeId}`;
+            const list = document.createElement('ul'); list.className = 'link-list';
             
             rawOutputData += `--- ${category} ---\n`;
 
             links.forEach(link => {
                 const li = document.createElement('li');
-                li.textContent = link;
+                
+                // Link Text
+                const span = document.createElement('span');
+                span.className = 'link-text';
+                span.textContent = link;
+                
+                // Single Copy Button
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-single';
+                copyBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+                copyBtn.title = "Copy this link";
+                copyBtn.onclick = () => copySingleLink(link, copyBtn);
+
+                // Hover Preview Logic (Images)
+                if(category === 'Images' || link.match(imgExtensions)) {
+                    li.addEventListener('mouseenter', () => {
+                        const pv = document.getElementById('imgPreview');
+                        pv.innerHTML = `<img src="${link}" onerror="this.style.display='none'">`;
+                        pv.style.display = 'block';
+                    });
+                    li.addEventListener('mousemove', (e) => {
+                        const pv = document.getElementById('imgPreview');
+                        if(pv.style.display === 'block') {
+                            pv.style.left = (e.clientX + 15) + 'px';
+                            pv.style.top = (e.clientY + 15) + 'px';
+                        }
+                    });
+                    li.addEventListener('mouseleave', () => document.getElementById('imgPreview').style.display = 'none');
+                }
+
+                li.appendChild(span);
+                li.appendChild(copyBtn);
                 list.appendChild(li);
                 rawOutputData += `${link}\n`;
             });
             
-            outputDiv.appendChild(list);
+            contentDiv.appendChild(list);
+            tabsContentArea.appendChild(contentDiv);
             rawOutputData += "\n";
+            isFirstTab = false;
         }
 
         document.getElementById('saveBtn').style.display = 'flex';
+        toolsBar.style.display = 'flex';
+        document.getElementById('searchBar').value = ''; // Reset search
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`content-${tabId}`).classList.add('active');
+        document.getElementById(`btn-${tabId}`).classList.add('active');
+        activeCategoryId = tabId;
+        document.getElementById('searchBar').value = ''; // Reset search on switch
+        filterActiveTab();
+    }
+
+    // Search Filter Logic
+    function filterActiveTab() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        const activeListItems = document.querySelectorAll(`.tab-content.active .link-list li`);
+        
+        activeListItems.forEach(li => {
+            const text = li.querySelector('.link-text').textContent.toLowerCase();
+            li.style.display = text.includes(query) ? 'flex' : 'none';
+        });
+    }
+
+    // Copy Single Link
+    function copySingleLink(text, btnElement) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = `<svg class="icon" style="color: #10b981;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+            setTimeout(() => btnElement.innerHTML = originalHTML, 1500);
+        });
+    }
+
+    // Copy All Links in Active Tab
+    function copyActiveTabLinks() {
+        // Find visible links only (respects search filter)
+        const visibleLinks = [];
+        const activeListItems = document.querySelectorAll(`.tab-content.active .link-list li`);
+        activeListItems.forEach(li => {
+            if(li.style.display !== 'none') {
+                visibleLinks.push(li.querySelector('.link-text').textContent);
+            }
+        });
+
+        if(visibleLinks.length > 0) {
+            navigator.clipboard.writeText(visibleLinks.join('\n')).then(() => {
+                const btn = document.querySelector('.copy-all-btn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none"/></svg> Copied ${visibleLinks.length}!`;
+                btn.style.background = '#10b981'; btn.style.color = '#000';
+                setTimeout(() => { btn.innerHTML = originalHTML; btn.style = ''; }, 2000);
+            });
+        }
     }
 
     function saveToTxt() {
         const blob = new Blob([rawOutputData], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `Data_Dump_${new Date().getTime()}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `0xDATA_DUMP_${new Date().getTime()}.txt`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 </script>
 
