@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Extractor V4.0 - Pro UI</title>
+    <title>Advanced Extractor V5.0 - Ultimate UI</title>
     <style>
         :root { --bg: #0b0f19; --panel: #111827; --text: #00ffcc; --accent: #00ffcc; --danger: #ff3366; --border: #1f2937; --hover-bg: #1a2235; }
         body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg); color: #fff; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
@@ -15,17 +15,31 @@
         .menu-btn:hover { background: var(--hover-bg); border-radius: 4px; }
         .nav-title { font-weight: bold; font-size: 1.2rem; margin: 0; letter-spacing: 2px; }
         
-        .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100%; background: #000; border-right: 1px solid var(--border); transition: 0.3s; z-index: 200; padding-top: 60px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #000; border-right: 1px solid var(--border); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 200; padding-top: 60px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
         .sidebar.active { left: 0; }
-        .sidebar-item { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; cursor: pointer; color: #a1a1aa; font-weight: bold; }
+        .sidebar-item { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; color: #a1a1aa; font-weight: bold; transition: 0.2s; }
         .sidebar-item:hover { background: var(--hover-bg); color: var(--accent); }
-        .close-menu { position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #fff; cursor: pointer; }
+        .sidebar-item-left { display: flex; align-items: center; gap: 10px; }
+        .close-menu { position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #fff; cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s;}
+        .close-menu:hover { background: var(--danger); }
+
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(14px); }
 
         /* Main Container */
         .container { flex: 1; width: 100%; max-width: 1200px; margin: auto; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
         
-        /* Inputs & Controls */
+        /* Layout Fixes: URL (Left) and Regex (Right) */
         .input-wrapper { display: flex; flex-direction: column; gap: 15px; width: 100%; transition: all 0.3s ease; }
+        .input-top-row { display: flex; gap: 15px; width: 100%; }
+        .flex-2 { flex: 2; }
+        .flex-1 { flex: 1; }
+        
         .input-group { background: var(--panel); padding: 15px; border-left: 4px solid var(--accent); }
         label { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; }
         input[type="url"], input[type="text"], textarea { width: 100%; background: #000; color: #fff; border: 1px solid #333; padding: 12px; box-sizing: border-box; font-family: monospace; outline: none; }
@@ -40,7 +54,6 @@
         /* Output & Tabs */
         .output-panel { margin-top: 30px; background: var(--panel); border: 1px solid var(--border); display: none; flex-direction: column; flex: 1; position: relative; }
         
-        /* Tool Bar (Search & Copy All) */
         .tools-bar { display: none; justify-content: space-between; align-items: center; padding: 10px 20px; background: #070a13; border-bottom: 1px solid var(--border); gap: 15px; }
         .search-box { flex: 1; position: relative; }
         .search-box input { width: 100%; padding: 8px 10px 8px 35px; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; }
@@ -58,7 +71,7 @@
         .tab-content { padding: 20px; display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
         
-        /* Links List & Single Copy */
+        /* Links List & Action Icons */
         .link-list { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #a1a1aa; max-height: 50vh; overflow-y: auto; }
         .link-list::-webkit-scrollbar { width: 6px; }
         .link-list::-webkit-scrollbar-thumb { background: #333; }
@@ -66,18 +79,27 @@
         .link-list li:hover { border-left: 2px solid var(--accent); color: #fff; background: #0f1422; }
         
         .link-text { flex: 1; padding-right: 15px; }
-        .copy-single { background: transparent; color: var(--accent); border: none; cursor: pointer; padding: 5px; border-radius: 4px; display: flex; opacity: 0.4; transition: 0.2s; }
-        .copy-single:hover { background: var(--accent); color: #000; opacity: 1; }
-        .link-list li:hover .copy-single { opacity: 1; }
+        .actions-group { display: flex; gap: 8px; }
+        .icon-btn { background: transparent; color: var(--accent); border: none; cursor: pointer; padding: 5px; border-radius: 4px; display: flex; opacity: 0.4; transition: 0.2s; }
+        .icon-btn:hover { background: var(--accent); color: #000; opacity: 1; }
+        .link-list li:hover .icon-btn { opacity: 1; }
         
         /* Floating Image Preview */
         #imgPreview { position: fixed; display: none; border: 2px solid var(--accent); background: #000; padding: 4px; max-width: 300px; max-height: 300px; z-index: 9999; border-radius: 4px; pointer-events: none; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
         #imgPreview img { max-width: 100%; max-height: 280px; display: block; }
+
+        /* Floating Media Player */
+        #mediaPlayerBox { position: fixed; bottom: 20px; right: 20px; background: #000; border: 1px solid #333; border-top: 4px solid var(--accent); padding: 15px; z-index: 9999; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.9); border-radius: 4px; width: 350px; }
+        #mediaPlayerBox video, #mediaPlayerBox audio { width: 100%; outline: none; background: #000; }
+        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--accent); font-weight: bold; font-size: 13px; text-transform: uppercase; }
+        .close-player { background: transparent; border: none; color: #fff; cursor: pointer; transition: 0.2s; }
+        .close-player:hover { color: var(--danger); }
         
         .icon { width: 18px; height: 18px; fill: currentColor; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 768px) {
+            .input-top-row { flex-direction: column; }
             .controls { flex-direction: column; }
             .tools-bar { flex-direction: column; align-items: stretch; }
         }
@@ -87,12 +109,22 @@
 
 <div id="imgPreview"></div>
 
+<div id="mediaPlayerBox">
+    <div class="player-header">
+        <span>0x_MEDIA_PLAYER</span>
+        <button class="close-player" onclick="closePlayer()">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+    </div>
+    <div id="mediaContainer"></div>
+</div>
+
 <div class="navbar">
     <div class="nav-left">
-        <button class="menu-btn" onclick="toggleSidebar()">
-            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2"/></svg>
+        <button class="menu-btn" id="menuToggleBtn" onclick="toggleSidebar()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
-        <h1 class="nav-title">[0xDATA_V4]</h1>
+        <h1 class="nav-title">[0xDATA_V5]</h1>
     </div>
 </div>
 
@@ -100,29 +132,42 @@
     <button class="close-menu" onclick="toggleSidebar()">
         <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>
     </button>
-    <div class="sidebar-item" onclick="toggleTargetUrl()">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-        Toggle Input Box
+    
+    <div class="sidebar-item">
+        <div class="sidebar-item-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            Target URL Box
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="urlToggleBtn" checked onchange="toggleTargetUrl()">
+            <span class="slider"></span>
+        </label>
     </div>
+    
     <div class="sidebar-item" onclick="clearAllData()">
-        <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-        Clear Workspace
+        <div class="sidebar-item-left">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            Clear Workspace
+        </div>
     </div>
 </div>
 
 <div class="container">
-    <div class="input-wrapper" id="urlBoxContainer">
-        <div class="input-group">
-            <label><svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" fill="none"/></svg> Target URL</label>
-            <input type="url" id="urlInput" placeholder="https://example.com">
+    <div class="input-wrapper">
+        <div class="input-top-row">
+            <div class="input-group flex-2" id="urlBoxContainer">
+                <label><svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" fill="none"/></svg> Target URL (Auto-Fetch)</label>
+                <input type="url" id="urlInput" placeholder="https://example.com">
+            </div>
+            <div class="input-group flex-1">
+                <label><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" fill="none"/></svg> Custom Regex</label>
+                <input type="text" id="customRegex" placeholder="e.g., api/v1/.*?\.json">
+            </div>
         </div>
+        
         <div class="input-group">
             <label><svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="2" fill="none"/></svg> Raw HTML Paste</label>
             <textarea id="htmlInput" placeholder="Paste full HTML source code here..."></textarea>
-        </div>
-        <div class="input-group">
-            <label><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" fill="none"/></svg> Custom Regex</label>
-            <input type="text" id="customRegex" placeholder="e.g., api/v1/.*?\.json">
         </div>
     </div>
     
@@ -154,23 +199,37 @@
 
 <script>
     let rawOutputData = "";
-    let extractedDataset = {}; // Store data for copying
-    let activeCategoryId = "";
 
+    // Toggle Sidebar
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+    
+    // Close sidebar when clicking outside
+    document.addEventListener('click', (event) => {
+        const sidebar = document.getElementById('sidebar');
+        const menuBtn = document.getElementById('menuToggleBtn');
+        if (sidebar.classList.contains('active') && !sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+            sidebar.classList.remove('active');
+        }
+    });
+
+    // Visual Toggle for URL Box
     function toggleTargetUrl() { 
         const b = document.getElementById('urlBoxContainer'); 
-        b.style.display = b.style.display === 'none' ? 'flex' : 'none'; 
-        toggleSidebar(); 
+        const isChecked = document.getElementById('urlToggleBtn').checked;
+        b.style.display = isChecked ? 'block' : 'none'; 
     }
+
+    // Clear Workspace
     function clearAllData() {
-        document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        document.querySelectorAll('input[type="url"], input[type="text"], textarea').forEach(el => el.value = '');
         document.getElementById('outputContainer').style.display = 'none';
         document.getElementById('saveBtn').style.display = 'none';
         document.getElementById('toolsBar').style.display = 'none';
-        toggleSidebar();
+        closePlayer();
+        document.getElementById('sidebar').classList.remove('active');
     }
 
+    // Extract API Call
     async function extractData() {
         const formData = new FormData();
         formData.append('url', document.getElementById('urlInput').value);
@@ -187,17 +246,16 @@
         try {
             const response = await fetch('/extract', { method: 'POST', body: formData });
             const data = await response.json();
-            extractedDataset = data; 
             buildTabsUI(data);
         } catch (error) {
             document.getElementById('tabsContentArea').innerHTML = `<div style="padding:20px; color:var(--danger)">System Error: ${error.message}</div>`;
         }
     }
 
+    // UI Builder
     function buildTabsUI(data) {
         const tabsHeader = document.getElementById('tabsHeader');
         const tabsContentArea = document.getElementById('tabsContentArea');
-        const toolsBar = document.getElementById('toolsBar');
         tabsHeader.innerHTML = ''; tabsContentArea.innerHTML = '';
         rawOutputData = "=== 0xDATA ASSET DUMP ===\n\n";
 
@@ -208,13 +266,12 @@
         }
 
         let isFirstTab = true;
-        const imgExtensions = /\.(jpeg|jpg|gif|png|webp|svg)$/i;
+        const imgExts = /\.(jpeg|jpg|gif|png|webp|svg)$/i;
+        const mediaExts = /\.(mp4|mp3|m3u8|mkv)$/i;
 
         for (const [category, links] of Object.entries(data)) {
             const safeId = category.replace(/[^a-zA-Z0-9]/g, '_');
-            if(isFirstTab) activeCategoryId = safeId;
             
-            // Tab Button
             const btn = document.createElement('button');
             btn.className = `tab-btn ${isFirstTab ? 'active' : ''}`;
             btn.innerHTML = `${category} (${links.length})`;
@@ -222,7 +279,6 @@
             btn.id = `btn-${safeId}`;
             tabsHeader.appendChild(btn);
 
-            // Tab Content
             const contentDiv = document.createElement('div');
             contentDiv.className = `tab-content ${isFirstTab ? 'active' : ''}`;
             contentDiv.id = `content-${safeId}`;
@@ -232,21 +288,33 @@
 
             links.forEach(link => {
                 const li = document.createElement('li');
-                
-                // Link Text
                 const span = document.createElement('span');
-                span.className = 'link-text';
-                span.textContent = link;
+                span.className = 'link-text'; span.textContent = link;
                 
-                // Single Copy Button
-                const copyBtn = document.createElement('button');
-                copyBtn.className = 'copy-single';
-                copyBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
-                copyBtn.title = "Copy this link";
-                copyBtn.onclick = () => copySingleLink(link, copyBtn);
+                const actionGroup = document.createElement('div');
+                actionGroup.className = 'actions-group';
 
-                // Hover Preview Logic (Images)
-                if(category === 'Images' || link.match(imgExtensions)) {
+                // Play Button Logic (For Media)
+                if(link.match(mediaExts)) {
+                    const type = link.split('.').pop().toLowerCase();
+                    const playBtn = document.createElement('button');
+                    playBtn.className = 'icon-btn';
+                    playBtn.title = "Play Media";
+                    playBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+                    playBtn.onclick = () => playMedia(link, type);
+                    actionGroup.appendChild(playBtn);
+                }
+
+                // Copy Button Logic
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'icon-btn';
+                copyBtn.title = "Copy Link";
+                copyBtn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+                copyBtn.onclick = () => copySingleLink(link, copyBtn);
+                actionGroup.appendChild(copyBtn);
+
+                // Hover Preview Logic (For Images)
+                if(category === 'Images' || link.match(imgExts)) {
                     li.addEventListener('mouseenter', () => {
                         const pv = document.getElementById('imgPreview');
                         pv.innerHTML = `<img src="${link}" onerror="this.style.display='none'">`;
@@ -263,7 +331,7 @@
                 }
 
                 li.appendChild(span);
-                li.appendChild(copyBtn);
+                li.appendChild(actionGroup);
                 list.appendChild(li);
                 rawOutputData += `${link}\n`;
             });
@@ -275,8 +343,8 @@
         }
 
         document.getElementById('saveBtn').style.display = 'flex';
-        toolsBar.style.display = 'flex';
-        document.getElementById('searchBar').value = ''; // Reset search
+        document.getElementById('toolsBar').style.display = 'flex';
+        document.getElementById('searchBar').value = '';
     }
 
     function switchTab(tabId) {
@@ -284,42 +352,30 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`content-${tabId}`).classList.add('active');
         document.getElementById(`btn-${tabId}`).classList.add('active');
-        activeCategoryId = tabId;
-        document.getElementById('searchBar').value = ''; // Reset search on switch
-        filterActiveTab();
+        document.getElementById('searchBar').value = ''; filterActiveTab();
     }
 
-    // Search Filter Logic
     function filterActiveTab() {
         const query = document.getElementById('searchBar').value.toLowerCase();
-        const activeListItems = document.querySelectorAll(`.tab-content.active .link-list li`);
-        
-        activeListItems.forEach(li => {
+        document.querySelectorAll(`.tab-content.active .link-list li`).forEach(li => {
             const text = li.querySelector('.link-text').textContent.toLowerCase();
             li.style.display = text.includes(query) ? 'flex' : 'none';
         });
     }
 
-    // Copy Single Link
-    function copySingleLink(text, btnElement) {
+    function copySingleLink(text, btn) {
         navigator.clipboard.writeText(text).then(() => {
-            const originalHTML = btnElement.innerHTML;
-            btnElement.innerHTML = `<svg class="icon" style="color: #10b981;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
-            setTimeout(() => btnElement.innerHTML = originalHTML, 1500);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<svg class="icon" style="color: #10b981;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none"/></svg>`;
+            setTimeout(() => btn.innerHTML = originalHTML, 1500);
         });
     }
 
-    // Copy All Links in Active Tab
     function copyActiveTabLinks() {
-        // Find visible links only (respects search filter)
         const visibleLinks = [];
-        const activeListItems = document.querySelectorAll(`.tab-content.active .link-list li`);
-        activeListItems.forEach(li => {
-            if(li.style.display !== 'none') {
-                visibleLinks.push(li.querySelector('.link-text').textContent);
-            }
+        document.querySelectorAll(`.tab-content.active .link-list li`).forEach(li => {
+            if(li.style.display !== 'none') visibleLinks.push(li.querySelector('.link-text').textContent);
         });
-
         if(visibleLinks.length > 0) {
             navigator.clipboard.writeText(visibleLinks.join('\n')).then(() => {
                 const btn = document.querySelector('.copy-all-btn');
@@ -336,6 +392,43 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
         a.download = `0xDATA_DUMP_${new Date().getTime()}.txt`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    // Media Player Logic
+    function playMedia(url, type) {
+        const box = document.getElementById('mediaPlayerBox');
+        const container = document.getElementById('mediaContainer');
+        box.style.display = 'block';
+        container.innerHTML = ''; // Clear old instance
+
+        if(type === 'mp4' || type === 'mkv') {
+            container.innerHTML = `<video controls autoplay><source src="${url}"></video>`;
+        } else if (type === 'mp3') {
+            container.innerHTML = `<audio controls autoplay><source src="${url}"></audio>`;
+        } else if (type === 'm3u8') {
+            container.innerHTML = `<video id="hlsVideo" controls autoplay></video>`;
+            const video = document.getElementById('hlsVideo');
+            if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url; // Natively supported (Safari)
+            } else {
+                // Dynamically inject hls.js for Chrome/Firefox
+                if(typeof Hls === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = "https://cdn.jsdelivr.net/npm/hls.js@latest";
+                    script.onload = () => {
+                        const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    const hls = new Hls(); hls.loadSource(url); hls.attachMedia(video);
+                }
+            }
+        }
+    }
+
+    function closePlayer() {
+        document.getElementById('mediaPlayerBox').style.display = 'none';
+        document.getElementById('mediaContainer').innerHTML = ''; // Destroy video instance to save memory
     }
 </script>
 
